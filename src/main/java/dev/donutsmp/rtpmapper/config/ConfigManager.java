@@ -2,13 +2,19 @@ package dev.donutsmp.rtpmapper.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.donutsmp.rtpmapper.DonutRtpMapperMod;
 import net.fabricmc.loader.api.FabricLoader;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 
 public final class ConfigManager {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -42,9 +48,7 @@ public final class ConfigManager {
 				String json = Files.readString(configFile, StandardCharsets.UTF_8);
 				MapperConfig loaded = GSON.fromJson(json, MapperConfig.class);
 				if (loaded != null) {
-					if (loaded.enabledDimensions == null || loaded.enabledDimensions.isEmpty()) {
-						loaded.enabledDimensions = new MapperConfig().enabledDimensions;
-					}
+					migrateLegacy(json, loaded);
 					config = loaded;
 				}
 			} else {
@@ -52,6 +56,48 @@ public final class ConfigManager {
 			}
 		} catch (IOException exception) {
 			config = new MapperConfig();
+		}
+	}
+
+	private void migrateLegacy(String json, MapperConfig loaded) {
+		try {
+			JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+			if (root.has("enabledDimensions") && !root.has("rtpOverworld")) {
+				loaded.rtpOverworld = false;
+				loaded.rtpNether = false;
+				loaded.rtpEnd = false;
+				JsonArray dimensions = root.getAsJsonArray("enabledDimensions");
+				for (JsonElement element : dimensions) {
+					if (!element.isJsonPrimitive()) {
+						continue;
+					}
+					switch (element.getAsString().trim().toLowerCase(java.util.Locale.ROOT)) {
+						case "nether" -> loaded.rtpNether = true;
+						case "end" -> loaded.rtpEnd = true;
+						default -> loaded.rtpOverworld = true;
+					}
+				}
+			}
+
+			if (root.has("randomizeDimension") && !root.get("randomizeDimension").getAsBoolean()
+					&& root.has("rtpDimension")) {
+				String fixed = root.get("rtpDimension").getAsString().toLowerCase(Locale.ROOT);
+				loaded.rtpOverworld = fixed.equals("overworld");
+				loaded.rtpNether = fixed.equals("nether");
+				loaded.rtpEnd = fixed.equals("end");
+			}
+
+			if (root.has("avoidRepeatDimension")) {
+				loaded.avoidRepeatTarget = root.get("avoidRepeatDimension").getAsBoolean();
+			}
+
+			if (!loaded.hasAnyRtpTarget()) {
+				loaded.rtpOverworld = true;
+			}
+		} catch (RuntimeException ignored) {
+			if (!loaded.hasAnyRtpTarget()) {
+				loaded.rtpOverworld = true;
+			}
 		}
 	}
 
@@ -64,6 +110,9 @@ public final class ConfigManager {
 	}
 
 	public void update(MapperConfig updated) {
+		if (!updated.hasAnyRtpTarget()) {
+			updated.rtpOverworld = true;
+		}
 		config = updated.copy();
 		save();
 	}

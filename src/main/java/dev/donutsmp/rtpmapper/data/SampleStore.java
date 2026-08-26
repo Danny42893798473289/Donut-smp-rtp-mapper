@@ -2,6 +2,7 @@ package dev.donutsmp.rtpmapper.data;
 
 import dev.donutsmp.rtpmapper.config.ConfigManager;
 import dev.donutsmp.rtpmapper.DonutRtpMapperMod;
+import dev.donutsmp.rtpmapper.engine.MapRegion;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class SampleStore {
-	private static final String CSV_HEADER = "timestamp,session_id,x,y,z,dimension,distance_from_origin";
+	private static final String CSV_HEADER = "timestamp,session_id,x,y,z,dimension,map_region,distance_from_origin";
 	private static final SampleStore INSTANCE = new SampleStore();
 
 	private final List<RtpSample> allSamples = new ArrayList<>();
@@ -84,6 +85,7 @@ public final class SampleStore {
 		}
 
 		try {
+			boolean hasRegion = parts.length >= 8;
 			return new RtpSample(
 					"loaded-" + parts[1],
 					parts[1],
@@ -91,7 +93,8 @@ public final class SampleStore {
 					Double.parseDouble(parts[2]),
 					Double.parseDouble(parts[3]),
 					Double.parseDouble(parts[4]),
-					parts[5]
+					parts[5],
+					hasRegion ? parts[6] : MapRegion.regionLabel(Double.parseDouble(parts[2]), Double.parseDouble(parts[4]))
 			);
 		} catch (RuntimeException exception) {
 			return null;

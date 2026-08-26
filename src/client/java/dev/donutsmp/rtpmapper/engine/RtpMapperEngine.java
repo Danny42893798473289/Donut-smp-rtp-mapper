@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public final class RtpMapperEngine {
 	private static final RtpMapperEngine INSTANCE = new RtpMapperEngine();
 
-	private final DimensionPicker dimensionPicker = new DimensionPicker();
+	private final RtpTargetPicker targetPicker = new RtpTargetPicker();
 	private final SampleStore sampleStore = SampleStore.get();
 
 	private RtpMapperState state = RtpMapperState.STOPPED;
@@ -30,6 +30,7 @@ public final class RtpMapperEngine {
 	private String statusMessage = "Idle";
 	private String toastMessage = "";
 	private String currentDimension = "";
+	private String currentTargetName = "";
 	private String serverStatus = "Not connected";
 
 	private double preRtpX;
@@ -135,7 +136,14 @@ public final class RtpMapperEngine {
 
 	private void tickPickingDimension() {
 		MapperConfig config = ConfigManager.get().getConfig();
-		currentDimension = dimensionPicker.pick(config);
+		if (!config.hasAnyRtpTarget()) {
+			handleFailure("No RTP targets enabled in Settings");
+			return;
+		}
+
+		RtpTargetPicker.RtpTarget target = targetPicker.pick(config);
+		currentDimension = target.commandArg();
+		currentTargetName = target.displayName();
 		transition(RtpMapperState.SENDING_RTP);
 	}
 
@@ -206,7 +214,8 @@ public final class RtpMapperEngine {
 		}
 
 		sampleListener.accept(sample);
-		showToast("Sample #" + sampleStore.getSessionSamples().size() + " saved [" + currentDimension + "]");
+		showToast("Sample #" + sampleStore.getSessionSamples().size() + " saved ["
+				+ currentTargetName + " / " + MapRegion.regionLabel(sample.x(), sample.z()) + "]");
 
 		startCooldown();
 		transition(RtpMapperState.WAITING_COOLDOWN);
@@ -326,6 +335,10 @@ public final class RtpMapperEngine {
 
 	public String getCurrentDimension() {
 		return currentDimension;
+	}
+
+	public String getCurrentTargetName() {
+		return currentTargetName;
 	}
 
 	public int getFailedAttempts() {

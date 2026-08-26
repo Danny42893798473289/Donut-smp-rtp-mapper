@@ -72,7 +72,7 @@ public final class MapperHudOverlay {
 			graphics.text(minecraft.font, "Last RTP: —", textX, textY, 0xFFB0BEC5, false);
 		} else {
 			graphics.text(minecraft.font, String.format(Locale.ROOT,
-					"Last RTP: %.0f / %.0f [%s]", engine.getLastRtpX(), engine.getLastRtpZ(), engine.getCurrentDimension()
+					"Last RTP: %.0f / %.0f [%s]", engine.getLastRtpX(), engine.getLastRtpZ(), engine.getCurrentTargetName()
 			), textX, textY, 0xFFB0BEC5, false);
 		}
 		textY += 10;

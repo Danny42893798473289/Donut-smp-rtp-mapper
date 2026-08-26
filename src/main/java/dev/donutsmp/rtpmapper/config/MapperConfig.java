@@ -1,15 +1,17 @@
 package dev.donutsmp.rtpmapper.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class MapperConfig {
 	public int cooldownSeconds = 300;
 	public int warmupSeconds = 5;
-	public boolean randomizeDimension = true;
-	public List<String> enabledDimensions = new ArrayList<>(List.of("overworld", "nether", "end"));
-	public String rtpDimension = "overworld";
-	public boolean avoidRepeatDimension = false;
+
+	/** DonutSMP RTP targets — only enabled targets are used; one is chosen at random each cycle. */
+	public boolean rtpOverworld = true;
+	public boolean rtpNether = false;
+	public boolean rtpEnd = false;
+
+	/** When multiple targets are enabled, avoid picking the same target twice in a row. */
+	public boolean avoidRepeatTarget = true;
+
 	public int teleportConfirmBlocks = 50;
 	public int teleportConfirmTimeoutSeconds = 30;
 	public String serverAddressContains = "donutsmp";
@@ -22,10 +24,10 @@ public final class MapperConfig {
 		MapperConfig copy = new MapperConfig();
 		copy.cooldownSeconds = cooldownSeconds;
 		copy.warmupSeconds = warmupSeconds;
-		copy.randomizeDimension = randomizeDimension;
-		copy.enabledDimensions = new ArrayList<>(enabledDimensions);
-		copy.rtpDimension = rtpDimension;
-		copy.avoidRepeatDimension = avoidRepeatDimension;
+		copy.rtpOverworld = rtpOverworld;
+		copy.rtpNether = rtpNether;
+		copy.rtpEnd = rtpEnd;
+		copy.avoidRepeatTarget = avoidRepeatTarget;
 		copy.teleportConfirmBlocks = teleportConfirmBlocks;
 		copy.teleportConfirmTimeoutSeconds = teleportConfirmTimeoutSeconds;
 		copy.serverAddressContains = serverAddressContains;
@@ -34,5 +36,9 @@ public final class MapperConfig {
 		copy.hudCorner = hudCorner;
 		copy.hudShowMiniMap = hudShowMiniMap;
 		return copy;
+	}
+
+	public boolean hasAnyRtpTarget() {
+		return rtpOverworld || rtpNether || rtpEnd;
 	}
 }

@@ -163,6 +163,12 @@ public final class MapperScreen extends Screen {
 		graphics.text(font, String.format(Locale.ROOT,
 				"Within 5k: %d  10k: %d", within5k, within10k
 		), x, y, 0xFFB0BEC5, false);
+		y += 10;
+
+		if (!samples.isEmpty()) {
+			RtpSample latest = samples.getLast();
+			graphics.text(font, "Latest region: " + latest.mapRegion(), x, y, 0xFFB0BEC5, false);
+		}
 	}
 
 	private void toggleMapping() {
