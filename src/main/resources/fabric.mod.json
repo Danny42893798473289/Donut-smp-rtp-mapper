@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "donut-smp-rtp-mapper",
+	"version": "${version}",
+	"name": "DonutSMP RTP Mapper",
+	"description": "Automates DonutSMP random teleports, maps landing coordinates, and exports samples to CSV/TXT.",
+	"authors": [
+		"DonutSMP RTP Mapper Contributors"
+	],
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"dev.donutsmp.rtpmapper.client.DonutRtpMapperClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.1",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
