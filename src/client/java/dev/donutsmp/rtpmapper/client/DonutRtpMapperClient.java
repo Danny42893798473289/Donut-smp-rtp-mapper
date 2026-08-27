@@ -19,6 +19,8 @@ import net.minecraft.client.gui.screens.Screen;
 import org.lwjgl.glfw.GLFW;
 
 public final class DonutRtpMapperClient implements ClientModInitializer {
+	private static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(DonutRtpMapperMod.id("category"));
+
 	private static KeyMapping openMapperKey;
 	private static KeyMapping toggleHudKey;
 	private static KeyMapping toggleMappingKey;
@@ -32,21 +34,21 @@ public final class DonutRtpMapperClient implements ClientModInitializer {
 				"key.donut-smp-rtp-mapper.open_mapper",
 				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_M,
-				KeyMapping.Category.register(DonutRtpMapperMod.id("category"))
+				KEY_CATEGORY
 		));
 
 		toggleHudKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.donut-smp-rtp-mapper.toggle_hud",
 				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_N,
-				KeyMapping.Category.register(DonutRtpMapperMod.id("category"))
+				KEY_CATEGORY
 		));
 
 		toggleMappingKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.donut-smp-rtp-mapper.toggle_mapping",
 				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_K,
-				KeyMapping.Category.register(DonutRtpMapperMod.id("category"))
+				KEY_CATEGORY
 		));
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
