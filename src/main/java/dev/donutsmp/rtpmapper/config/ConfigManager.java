@@ -91,12 +91,19 @@ public final class ConfigManager {
 				loaded.avoidRepeatTarget = root.get("avoidRepeatDimension").getAsBoolean();
 			}
 
+			if (!root.has("serverBrandContains") || root.get("serverBrandContains").isJsonNull()) {
+				loaded.serverBrandContains = "donut";
+			}
+
 			if (!loaded.hasAnyRtpTarget()) {
 				loaded.rtpOverworld = true;
 			}
 		} catch (RuntimeException ignored) {
 			if (!loaded.hasAnyRtpTarget()) {
 				loaded.rtpOverworld = true;
+			}
+			if (loaded.serverBrandContains == null || loaded.serverBrandContains.isBlank()) {
+				loaded.serverBrandContains = "donut";
 			}
 		}
 	}

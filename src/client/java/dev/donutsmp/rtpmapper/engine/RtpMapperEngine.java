@@ -292,9 +292,14 @@ public final class RtpMapperEngine {
 			return;
 		}
 
-		String address = minecraft.getCurrentServer().ip;
+		String address = DonutServerProbe.getServerAddress(minecraft);
 		if (isOnDonutSmp()) {
-			serverStatus = "DonutSMP server accepted";
+			String brand = DonutServerProbe.getServerBrand(minecraft);
+			if (brand != null && !brand.isBlank()) {
+				serverStatus = "DonutSMP accepted (" + brand + ")";
+			} else {
+				serverStatus = "DonutSMP server accepted";
+			}
 		} else {
 			serverStatus = "Connected to " + address;
 		}
@@ -306,8 +311,11 @@ public final class RtpMapperEngine {
 			return false;
 		}
 
-		String needle = ConfigManager.get().getConfig().serverAddressContains.toLowerCase(Locale.ROOT);
-		return minecraft.getCurrentServer().ip.toLowerCase(Locale.ROOT).contains(needle);
+		return DonutServerDetector.matches(
+				DonutServerProbe.getServerAddress(minecraft),
+				DonutServerProbe.getServerBrand(minecraft),
+				ConfigManager.get().getConfig()
+		);
 	}
 
 	public boolean isRunning() {

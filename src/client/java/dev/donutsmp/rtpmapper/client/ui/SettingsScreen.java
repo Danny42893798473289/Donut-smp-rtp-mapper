@@ -15,6 +15,7 @@ public final class SettingsScreen extends Screen {
 	private EditBox cooldownBox;
 	private EditBox warmupBox;
 	private EditBox serverFilterBox;
+	private EditBox serverBrandFilterBox;
 
 	public SettingsScreen(Screen parent) {
 		super(Component.literal("RTP Mapper Settings"));
@@ -42,6 +43,11 @@ public final class SettingsScreen extends Screen {
 		serverFilterBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Server address contains"));
 		serverFilterBox.setValue(draft.serverAddressContains);
 		addRenderableWidget(serverFilterBox);
+		y += 28;
+
+		serverBrandFilterBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Server brand contains"));
+		serverBrandFilterBox.setValue(draft.serverBrandContains);
+		addRenderableWidget(serverBrandFilterBox);
 		y += 36;
 
 		graphicsLabelY = y;
@@ -89,7 +95,8 @@ public final class SettingsScreen extends Screen {
 		graphics.centeredText(font, title.getString(), width / 2, 16, 0xFFFFFF);
 		graphics.text(font, "Cooldown (seconds)", width / 2 - 150, 24, 0xFFB0BEC5, false);
 		graphics.text(font, "Warmup (seconds)", width / 2 - 150, 52, 0xFFB0BEC5, false);
-		graphics.text(font, "Server filter", width / 2 - 150, 80, 0xFFB0BEC5, false);
+		graphics.text(font, "Server address filter", width / 2 - 150, 80, 0xFFB0BEC5, false);
+		graphics.text(font, "Server brand filter (proxy-safe)", width / 2 - 150, 108, 0xFFB0BEC5, false);
 		graphics.text(font, "RTP targets (random among enabled)", width / 2 - 150, graphicsLabelY, 0xFF90CAF9, false);
 		graphics.text(font, "DonutSMP: /rtp overworld | nether | end", width / 2 - 150, graphicsLabelY + 10, 0xFF78909C, false);
 		super.extractRenderState(graphics, mouseX, mouseY, partialTick);
@@ -104,6 +111,7 @@ public final class SettingsScreen extends Screen {
 		}
 
 		draft.serverAddressContains = serverFilterBox.getValue().trim();
+		draft.serverBrandContains = serverBrandFilterBox.getValue().trim();
 		if (!draft.hasAnyRtpTarget()) {
 			draft.rtpOverworld = true;
 		}

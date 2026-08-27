@@ -58,7 +58,7 @@ The server then picks a random safe coordinate inside its configured RTP border 
 
 ### Workflow
 
-1. Connect to **DonutSMP** (`donutsmp.net`).
+1. Connect to **DonutSMP** (`donutsmp.net`) or via a proxy — the mod detects Donut by **server brand** (e.g. `DonutFolia`) as well as address.
 2. Open Settings and enable the dimension(s) you want to map.
 3. Press `K` or click **Start Mapping**.
 4. Stay completely still during the RTP warmup countdown.
