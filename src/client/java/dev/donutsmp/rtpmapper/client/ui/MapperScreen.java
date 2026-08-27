@@ -3,6 +3,7 @@ package dev.donutsmp.rtpmapper.client.ui;
 import dev.donutsmp.rtpmapper.config.ConfigManager;
 import dev.donutsmp.rtpmapper.data.RtpSample;
 import dev.donutsmp.rtpmapper.data.SampleStore;
+import dev.donutsmp.rtpmapper.engine.RegionStats;
 import dev.donutsmp.rtpmapper.engine.RtpMapperEngine;
 import dev.donutsmp.rtpmapper.render.MapRenderer;
 import net.minecraft.client.Minecraft;
@@ -14,14 +15,17 @@ import net.minecraft.network.chat.Component;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public final class MapperScreen extends Screen {
 	private final MapRenderer mapRenderer = new MapRenderer();
-	private boolean showSessionOnly = true;
+	private boolean showLifetimeSamples;
+	private boolean clearConfirmPending;
 	private String footerMessage = "Ready";
 
 	public MapperScreen() {
 		super(Component.literal("DonutSMP RTP Mapper"));
+		this.showLifetimeSamples = ConfigManager.get().getConfig().showLifetimeSamples;
 	}
 
 	@Override
@@ -52,19 +56,20 @@ public final class MapperScreen extends Screen {
 		x += buttonWidth + gap;
 
 		addRenderableWidget(Button.builder(
-				Component.literal(showSessionOnly ? "View: Session" : "View: All"),
+				Component.literal(showLifetimeSamples ? "View: Lifetime" : "View: Session"),
 				button -> {
-					showSessionOnly = !showSessionOnly;
+					showLifetimeSamples = !showLifetimeSamples;
+					var config = ConfigManager.get().getConfig();
+					config.showLifetimeSamples = showLifetimeSamples;
+					ConfigManager.get().update(config);
 					clearWidgets();
 					init();
 				}
-		).bounds(width - 110, top, 102, 20).build());
+		).bounds(width - 118, top, 110, 20).build());
 	}
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-		extractBackground(graphics, mouseX, mouseY, partialTick);
-
 		RtpMapperEngine engine = RtpMapperEngine.get();
 		SampleStore store = SampleStore.get();
 		Minecraft minecraft = Minecraft.getInstance();
@@ -87,10 +92,10 @@ public final class MapperScreen extends Screen {
 		graphics.fill(8, topBarHeight + 8, panelWidth + 8, height - bottomBarHeight - 8, 0xCC101828);
 		renderStatusPanel(graphics, engine, store, minecraft, 16, topBarHeight + 16);
 
-		List<RtpSample> samples = showSessionOnly ? store.getSessionSamples() : store.getAllSamples();
-		String title = showSessionOnly
-				? "Random Teleports on DonutSMP — Session (" + samples.size() + ")"
-				: "Random Teleports on DonutSMP — All (" + samples.size() + ")";
+		List<RtpSample> samples = store.getDisplaySamples(showLifetimeSamples);
+		String title = showLifetimeSamples
+				? "Random Teleports on DonutSMP — Lifetime (" + samples.size() + ")"
+				: "Random Teleports on DonutSMP — Session (" + samples.size() + ")";
 		graphics.text(font, title, mapX, mapY - 12, 0xFFCFD8DC, false);
 		mapRenderer.render(graphics, mapX, mapY, mapWidth, mapHeight, samples);
 
@@ -107,9 +112,12 @@ public final class MapperScreen extends Screen {
 		int line = y;
 		graphics.text(font, "MAPPER STATUS", x, line, 0xFF90CAF9, false);
 		line += 14;
-		graphics.text(font,
-				"Samples: " + store.getSessionSamples().size() + " session / " + store.getAllSamples().size() + " total",
-				x, line, 0xFFB0BEC5, false);
+		long invalidSamples = store.countInvalidSamples();
+		String sampleLine = "Samples: " + store.getSessionSamples().size() + " session / " + store.getAllSamples().size() + " total";
+		if (invalidSamples > 0) {
+			sampleLine += " (" + invalidSamples + " invalid)";
+		}
+		graphics.text(font, sampleLine, x, line, invalidSamples > 0 ? 0xFFFFB74D : 0xFFB0BEC5, false);
 		line += 12;
 
 		if (minecraft.player != null) {
@@ -158,11 +166,46 @@ public final class MapperScreen extends Screen {
 		graphics.text(font, String.format(Locale.ROOT, "Avg distance: %.0f", avgDistance), x, y, 0xFFB0BEC5, false);
 		y += 10;
 
+		String quadrants = RegionStats.formatQuadrantBreakdown(samples);
+		if (!quadrants.isEmpty()) {
+			graphics.text(font, "Quadrants: " + quadrants, x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
+
+		for (Map.Entry<String, Long> entry : RegionStats.topRegions(samples, 3)) {
+			graphics.text(font, String.format(Locale.ROOT, "%s: %d", entry.getKey(), entry.getValue()), x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
+
 		long within5k = samples.stream().filter(sample -> sample.distanceFromOrigin() <= 5_000).count();
 		long within10k = samples.stream().filter(sample -> sample.distanceFromOrigin() <= 10_000).count();
 		graphics.text(font, String.format(Locale.ROOT,
 				"Within 5k: %d  10k: %d", within5k, within10k
 		), x, y, 0xFFB0BEC5, false);
+		y += 10;
+
+		if (!samples.isEmpty()) {
+			RtpSample latest = samples.getLast();
+			graphics.text(font, "Latest region: " + latest.mapRegion(), x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
+
+		double avgDelta = samples.stream().mapToDouble(RtpSample::teleportDelta).filter(delta -> delta > 0).average().orElse(0);
+		if (avgDelta > 0) {
+			graphics.text(font, String.format(Locale.ROOT, "Avg RTP move: %.0f blocks", avgDelta), x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
+
+		long outsideZone = samples.stream().filter(RtpSample::looksOutsideDonutRtpZone).count();
+		if (outsideZone > 0) {
+			graphics.text(font, "Outside ~15k RTP zone: " + outsideZone + "/" + samples.size(), x, y, 0xFFFFB74D, false);
+			y += 10;
+		}
+
+		String diagnosis = RegionStats.diagnoseSamples(samples);
+		if (!diagnosis.isEmpty()) {
+			graphics.text(font, diagnosis, x, y, 0xFFFF8A65, false);
+		}
 	}
 
 	private void toggleMapping() {
@@ -172,16 +215,30 @@ public final class MapperScreen extends Screen {
 	}
 
 	private void clearData() {
-		SampleStore.get().clearSession();
-		footerMessage = "Session samples cleared";
+		if (!clearConfirmPending) {
+			clearConfirmPending = true;
+			long invalid = SampleStore.get().countInvalidSamples();
+			footerMessage = invalid > 0
+					? "Click Clear Data again to delete ALL " + SampleStore.get().getAllSamples().size() + " samples + CSV"
+					: "Click Clear Data again to delete ALL samples + CSV";
+			return;
+		}
+
+		clearConfirmPending = false;
+		try {
+			SampleStore.get().clearAllAndDeleteFiles();
+			footerMessage = "All samples cleared (samples.csv deleted)";
+		} catch (Exception exception) {
+			footerMessage = "Clear failed: " + exception.getMessage();
+		}
 	}
 
 	private void exportCsv() {
 		try {
 			SampleStore store = SampleStore.get();
-			List<RtpSample> samples = showSessionOnly ? store.getSessionSamples() : store.getAllSamples();
+			List<RtpSample> samples = showLifetimeSamples ? store.getAllSamples() : store.getSessionSamples();
 			Path target = ConfigManager.get().getConfigDir().resolve(
-					showSessionOnly ? "export-session.csv" : "export-all.csv"
+					showLifetimeSamples ? "export-all.csv" : "export-session.csv"
 			);
 			store.exportViewCsv(samples, target);
 			footerMessage = "Exported CSV to " + target.getFileName();

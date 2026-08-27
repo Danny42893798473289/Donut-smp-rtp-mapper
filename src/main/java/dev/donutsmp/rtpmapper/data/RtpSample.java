@@ -1,5 +1,7 @@
 package dev.donutsmp.rtpmapper.data;
 
+import dev.donutsmp.rtpmapper.engine.MapRegion;
+
 import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
@@ -11,9 +13,11 @@ public record RtpSample(
 		double x,
 		double y,
 		double z,
-		String dimension
+		String dimension,
+		String mapRegion,
+		double teleportDelta
 ) {
-	public static RtpSample create(String sessionId, double x, double y, double z, String dimension) {
+	public static RtpSample create(String sessionId, double x, double y, double z, String dimension, double teleportDelta) {
 		return new RtpSample(
 				UUID.randomUUID().toString(),
 				sessionId,
@@ -21,7 +25,9 @@ public record RtpSample(
 				x,
 				y,
 				z,
-				dimension
+				dimension,
+				MapRegion.regionLabel(x, z),
+				teleportDelta
 		);
 	}
 
@@ -31,27 +37,40 @@ public record RtpSample(
 
 	public String toCsvRow() {
 		return String.format(Locale.ROOT,
-				"%s,%s,%.3f,%.3f,%.3f,%s,%.3f",
+				"%s,%s,%.3f,%.3f,%.3f,%s,%s,%.3f,%.3f",
 				timestamp.toString(),
 				sessionId,
 				x,
 				y,
 				z,
 				dimension,
-				distanceFromOrigin()
+				mapRegion,
+				distanceFromOrigin(),
+				teleportDelta
 		);
 	}
 
 	public String toTextLine() {
 		return String.format(Locale.ROOT,
-				"[%s] session=%s dim=%s x=%.1f y=%.1f z=%.1f dist=%.1f",
+				"[%s] session=%s dim=%s region=%s x=%.1f y=%.1f z=%.1f dist=%.1f delta=%.1f",
 				timestamp,
 				sessionId,
 				dimension,
+				mapRegion,
 				x,
 				y,
 				z,
-				distanceFromOrigin()
+				distanceFromOrigin(),
+				teleportDelta
 		);
+	}
+
+	public boolean looksOutsideDonutRtpZone() {
+		return distanceFromOrigin() > MapRegion.DONUT_TYPICAL_RTP_MAX_DISTANCE;
+	}
+
+	/** DonutSMP overworld RTP lands within ~15k of world center (0, 0). */
+	public boolean looksLikeValidDonutRtpLanding() {
+		return !looksOutsideDonutRtpZone();
 	}
 }

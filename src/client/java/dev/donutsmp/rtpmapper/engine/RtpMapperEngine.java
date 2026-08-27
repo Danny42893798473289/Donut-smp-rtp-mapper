@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public final class RtpMapperEngine {
 	private static final RtpMapperEngine INSTANCE = new RtpMapperEngine();
 
-	private final DimensionPicker dimensionPicker = new DimensionPicker();
+	private final RtpTargetPicker targetPicker = new RtpTargetPicker();
 	private final SampleStore sampleStore = SampleStore.get();
 
 	private RtpMapperState state = RtpMapperState.STOPPED;
@@ -30,6 +30,7 @@ public final class RtpMapperEngine {
 	private String statusMessage = "Idle";
 	private String toastMessage = "";
 	private String currentDimension = "";
+	private String currentTargetName = "";
 	private String serverStatus = "Not connected";
 
 	private double preRtpX;
@@ -62,7 +63,10 @@ public final class RtpMapperEngine {
 		}
 
 		if (!isOnDonutSmp()) {
-			showToast("Connect to DonutSMP before starting.");
+			Minecraft minecraft = Minecraft.getInstance();
+			String address = DonutServerProbe.getServerAddress(minecraft);
+			String brand = DonutServerProbe.getServerBrand(minecraft);
+			showToast("Not on DonutSMP (addr=" + describe(address) + ", brand=" + describe(brand) + ")");
 			return;
 		}
 
@@ -74,7 +78,7 @@ public final class RtpMapperEngine {
 		cooldownEndsAt = Instant.now();
 		stateStartedAt = Instant.now();
 		statusMessage = "Starting mapping session";
-		showToast("Mapping started");
+		showToast("Mapping started — disable Glazed Covered Hole + Meteor ESP to avoid Sodium crashes");
 	}
 
 	public void stop() {
@@ -135,7 +139,14 @@ public final class RtpMapperEngine {
 
 	private void tickPickingDimension() {
 		MapperConfig config = ConfigManager.get().getConfig();
-		currentDimension = dimensionPicker.pick(config);
+		if (!config.hasAnyRtpTarget()) {
+			handleFailure("No RTP targets enabled in Settings");
+			return;
+		}
+
+		RtpTargetPicker.RtpTarget target = targetPicker.pick(config);
+		currentDimension = target.commandArg();
+		currentTargetName = target.displayName();
 		transition(RtpMapperState.SENDING_RTP);
 	}
 
@@ -164,6 +175,8 @@ public final class RtpMapperEngine {
 	}
 
 	private void tickConfirmingTeleport(LocalPlayer player) {
+		player.input.keyPresses = Input.EMPTY;
+
 		MapperConfig config = ConfigManager.get().getConfig();
 		double dx = player.getX() - preRtpX;
 		double dz = player.getZ() - preRtpZ;
@@ -185,13 +198,26 @@ public final class RtpMapperEngine {
 	}
 
 	private void tickRecordingSample(LocalPlayer player) {
+		double teleportDelta = Math.sqrt(
+				Math.pow(player.getX() - preRtpX, 2) + Math.pow(player.getZ() - preRtpZ, 2)
+		);
 		RtpSample sample = RtpSample.create(
 				sampleStore.getCurrentSessionId(),
 				player.getX(),
 				player.getY(),
 				player.getZ(),
-				currentDimension
+				currentDimension,
+				teleportDelta
 		);
+
+		if (!sample.looksLikeValidDonutRtpLanding()) {
+			handleFailure(String.format(Locale.ROOT,
+					"Rejected sample outside RTP zone (dist %.0f, moved %.0f) — use /rtp from spawn to verify",
+					sample.distanceFromOrigin(),
+					teleportDelta
+			));
+			return;
+		}
 
 		lastRtpX = sample.x();
 		lastRtpZ = sample.z();
@@ -206,7 +232,10 @@ public final class RtpMapperEngine {
 		}
 
 		sampleListener.accept(sample);
-		showToast("Sample #" + sampleStore.getSessionSamples().size() + " saved [" + currentDimension + "]");
+		showToast("Sample #" + sampleStore.getSessionSamples().size() + " saved ["
+				+ currentTargetName + " / " + MapRegion.regionLabel(sample.x(), sample.z())
+				+ " dist " + RegionStats.formatDistance(sample.distanceFromOrigin())
+				+ " moved " + RegionStats.formatDistance(teleportDelta) + "]");
 
 		startCooldown();
 		transition(RtpMapperState.WAITING_COOLDOWN);
@@ -283,9 +312,14 @@ public final class RtpMapperEngine {
 			return;
 		}
 
-		String address = minecraft.getCurrentServer().ip;
+		String address = DonutServerProbe.getServerAddress(minecraft);
 		if (isOnDonutSmp()) {
-			serverStatus = "DonutSMP server accepted";
+			String brand = DonutServerProbe.getServerBrand(minecraft);
+			if (brand != null && !brand.isBlank()) {
+				serverStatus = "DonutSMP accepted (" + brand + ")";
+			} else {
+				serverStatus = "DonutSMP server accepted";
+			}
 		} else {
 			serverStatus = "Connected to " + address;
 		}
@@ -297,8 +331,11 @@ public final class RtpMapperEngine {
 			return false;
 		}
 
-		String needle = ConfigManager.get().getConfig().serverAddressContains.toLowerCase(Locale.ROOT);
-		return minecraft.getCurrentServer().ip.toLowerCase(Locale.ROOT).contains(needle);
+		return DonutServerDetector.matches(
+				DonutServerProbe.getServerAddress(minecraft),
+				DonutServerProbe.getServerBrand(minecraft),
+				ConfigManager.get().getConfig()
+		);
 	}
 
 	public boolean isRunning() {
@@ -326,6 +363,10 @@ public final class RtpMapperEngine {
 
 	public String getCurrentDimension() {
 		return currentDimension;
+	}
+
+	public String getCurrentTargetName() {
+		return currentTargetName;
 	}
 
 	public int getFailedAttempts() {
@@ -379,5 +420,12 @@ public final class RtpMapperEngine {
 	private void showToast(String message) {
 		toastMessage = message;
 		toastExpiresAt = Instant.now().plusSeconds(4);
+	}
+
+	private static String describe(String value) {
+		if (value == null || value.isBlank()) {
+			return "unknown";
+		}
+		return value.length() > 32 ? value.substring(0, 29) + "..." : value;
 	}
 }

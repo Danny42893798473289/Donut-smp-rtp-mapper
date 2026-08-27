@@ -2,6 +2,7 @@ package dev.donutsmp.rtpmapper.data;
 
 import dev.donutsmp.rtpmapper.config.ConfigManager;
 import dev.donutsmp.rtpmapper.DonutRtpMapperMod;
+import dev.donutsmp.rtpmapper.engine.MapRegion;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class SampleStore {
-	private static final String CSV_HEADER = "timestamp,session_id,x,y,z,dimension,distance_from_origin";
+	private static final String CSV_HEADER = "timestamp,session_id,x,y,z,dimension,map_region,distance_from_origin,teleport_delta";
 	private static final SampleStore INSTANCE = new SampleStore();
 
 	private final List<RtpSample> allSamples = new ArrayList<>();
@@ -50,6 +51,10 @@ public final class SampleStore {
 		return Collections.unmodifiableList(sessionSamples);
 	}
 
+	public List<RtpSample> getDisplaySamples(boolean lifetime) {
+		return lifetime ? getAllSamples() : getSessionSamples();
+	}
+
 	public void clearSession() {
 		sessionSamples.clear();
 	}
@@ -57,6 +62,25 @@ public final class SampleStore {
 	public void clearAll() {
 		allSamples.clear();
 		sessionSamples.clear();
+	}
+
+	public void clearAllAndDeleteFiles() throws IOException {
+		clearAll();
+		Path configDir = ConfigManager.get().getConfigDir();
+		Files.deleteIfExists(getSamplesCsvPath());
+		Files.deleteIfExists(configDir.resolve("samples.txt"));
+		Path sessionsDir = configDir.resolve("sessions");
+		if (Files.isDirectory(sessionsDir)) {
+			try (var entries = Files.list(sessionsDir)) {
+				for (Path entry : entries.toList()) {
+					Files.deleteIfExists(entry);
+				}
+			}
+		}
+	}
+
+	public long countInvalidSamples() {
+		return allSamples.stream().filter(RtpSample::looksOutsideDonutRtpZone).count();
 	}
 
 	public void loadExisting() {
@@ -84,14 +108,19 @@ public final class SampleStore {
 		}
 
 		try {
+			double x = Double.parseDouble(parts[2]);
+			double z = Double.parseDouble(parts[4]);
+			double teleportDelta = parts.length >= 9 ? Double.parseDouble(parts[8]) : 0.0;
 			return new RtpSample(
 					"loaded-" + parts[1],
 					parts[1],
 					java.time.Instant.parse(parts[0]),
-					Double.parseDouble(parts[2]),
+					x,
 					Double.parseDouble(parts[3]),
-					Double.parseDouble(parts[4]),
-					parts[5]
+					z,
+					parts[5],
+					MapRegion.regionLabel(x, z),
+					teleportDelta
 			);
 		} catch (RuntimeException exception) {
 			return null;

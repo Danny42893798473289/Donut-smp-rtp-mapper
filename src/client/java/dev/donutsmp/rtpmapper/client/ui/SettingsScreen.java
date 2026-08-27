@@ -9,17 +9,14 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class SettingsScreen extends Screen {
 	private final Screen parent;
 	private MapperConfig draft;
 	private EditBox cooldownBox;
 	private EditBox warmupBox;
+	private EditBox teleportConfirmBox;
 	private EditBox serverFilterBox;
-	private EditBox dimensionsBox;
-	private EditBox fixedDimensionBox;
+	private EditBox serverBrandFilterBox;
 
 	public SettingsScreen(Screen parent) {
 		super(Component.literal("RTP Mapper Settings"));
@@ -30,7 +27,7 @@ public final class SettingsScreen extends Screen {
 	@Override
 	protected void init() {
 		int x = width / 2 - 150;
-		int y = 40;
+		int y = 36;
 		int fieldWidth = 300;
 		int fieldHeight = 20;
 
@@ -44,28 +41,39 @@ public final class SettingsScreen extends Screen {
 		addRenderableWidget(warmupBox);
 		y += 28;
 
+		teleportConfirmBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Teleport confirm blocks"));
+		teleportConfirmBox.setValue(String.valueOf(draft.teleportConfirmBlocks));
+		addRenderableWidget(teleportConfirmBox);
+		y += 28;
+
 		serverFilterBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Server address contains"));
 		serverFilterBox.setValue(draft.serverAddressContains);
 		addRenderableWidget(serverFilterBox);
 		y += 28;
 
-		dimensionsBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Enabled dimensions"));
-		dimensionsBox.setValue(String.join(",", draft.enabledDimensions));
-		addRenderableWidget(dimensionsBox);
+		serverBrandFilterBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Server brand contains"));
+		serverBrandFilterBox.setValue(draft.serverBrandContains);
+		addRenderableWidget(serverBrandFilterBox);
+		y += 36;
+
+		graphicsLabelY = y;
+		y += 12;
+
+		addRenderableWidget(CycleButton.onOffBuilder(draft.rtpOverworld)
+				.create(x, y, fieldWidth, 20, Component.literal("RTP: Overworld"), (button, value) -> draft.rtpOverworld = value));
+		y += 24;
+
+		addRenderableWidget(CycleButton.onOffBuilder(draft.rtpNether)
+				.create(x, y, fieldWidth, 20, Component.literal("RTP: Nether"), (button, value) -> draft.rtpNether = value));
+		y += 24;
+
+		addRenderableWidget(CycleButton.onOffBuilder(draft.rtpEnd)
+				.create(x, y, fieldWidth, 20, Component.literal("RTP: The End"), (button, value) -> draft.rtpEnd = value));
+		y += 24;
+
+		addRenderableWidget(CycleButton.onOffBuilder(draft.avoidRepeatTarget)
+				.create(x, y, fieldWidth, 20, Component.literal("Avoid repeat target"), (button, value) -> draft.avoidRepeatTarget = value));
 		y += 28;
-
-		fixedDimensionBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Fixed dimension"));
-		fixedDimensionBox.setValue(draft.rtpDimension);
-		addRenderableWidget(fixedDimensionBox);
-		y += 34;
-
-		addRenderableWidget(CycleButton.onOffBuilder(draft.randomizeDimension)
-				.create(x, y, fieldWidth, 20, Component.literal("Random dimension"), (button, value) -> draft.randomizeDimension = value));
-		y += 24;
-
-		addRenderableWidget(CycleButton.onOffBuilder(draft.avoidRepeatDimension)
-				.create(x, y, fieldWidth, 20, Component.literal("Avoid repeat dimension"), (button, value) -> draft.avoidRepeatDimension = value));
-		y += 24;
 
 		addRenderableWidget(CycleButton.onOffBuilder(draft.hudEnabled)
 				.create(x, y, fieldWidth, 20, Component.literal("HUD enabled"), (button, value) -> draft.hudEnabled = value));
@@ -73,6 +81,10 @@ public final class SettingsScreen extends Screen {
 
 		addRenderableWidget(CycleButton.onOffBuilder(draft.hudShowMiniMap)
 				.create(x, y, fieldWidth, 20, Component.literal("HUD mini-map"), (button, value) -> draft.hudShowMiniMap = value));
+		y += 24;
+
+		addRenderableWidget(CycleButton.onOffBuilder(draft.showLifetimeSamples)
+				.create(x, y, fieldWidth, 20, Component.literal("Lifetime samples (map + HUD)"), (button, value) -> draft.showLifetimeSamples = value));
 		y += 24;
 
 		addRenderableWidget(CycleButton.builder(HudCorner::label, HudCorner.TOP_LEFT)
@@ -86,15 +98,18 @@ public final class SettingsScreen extends Screen {
 				.bounds(x + 155, y, 145, 20).build());
 	}
 
+	private int graphicsLabelY = 120;
+
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-		extractBackground(graphics, mouseX, mouseY, partialTick);
 		graphics.centeredText(font, title.getString(), width / 2, 16, 0xFFFFFF);
-		graphics.text(font, "Cooldown (seconds)", width / 2 - 150, 28, 0xFFB0BEC5, false);
-		graphics.text(font, "Warmup (seconds)", width / 2 - 150, 56, 0xFFB0BEC5, false);
-		graphics.text(font, "Server filter", width / 2 - 150, 84, 0xFFB0BEC5, false);
-		graphics.text(font, "Enabled dimensions (comma-separated)", width / 2 - 150, 112, 0xFFB0BEC5, false);
-		graphics.text(font, "Fixed dimension when random is off", width / 2 - 150, 140, 0xFFB0BEC5, false);
+		graphics.text(font, "Cooldown (seconds)", width / 2 - 150, 24, 0xFFB0BEC5, false);
+		graphics.text(font, "Warmup (seconds)", width / 2 - 150, 52, 0xFFB0BEC5, false);
+		graphics.text(font, "Teleport confirm (blocks)", width / 2 - 150, 80, 0xFFB0BEC5, false);
+		graphics.text(font, "Server address filter", width / 2 - 150, 108, 0xFFB0BEC5, false);
+		graphics.text(font, "Server brand filter (proxy-safe)", width / 2 - 150, 136, 0xFFB0BEC5, false);
+		graphics.text(font, "RTP targets (random among enabled)", width / 2 - 150, graphicsLabelY, 0xFF90CAF9, false);
+		graphics.text(font, "DonutSMP: /rtp overworld | nether | end", width / 2 - 150, graphicsLabelY + 10, 0xFF78909C, false);
 		super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 	}
 
@@ -102,29 +117,18 @@ public final class SettingsScreen extends Screen {
 		try {
 			draft.cooldownSeconds = Math.max(1, Integer.parseInt(cooldownBox.getValue().trim()));
 			draft.warmupSeconds = Math.max(1, Integer.parseInt(warmupBox.getValue().trim()));
+			draft.teleportConfirmBlocks = Math.max(50, Integer.parseInt(teleportConfirmBox.getValue().trim()));
 		} catch (NumberFormatException exception) {
 			return;
 		}
 
 		draft.serverAddressContains = serverFilterBox.getValue().trim();
-		draft.rtpDimension = fixedDimensionBox.getValue().trim().toLowerCase();
-		draft.enabledDimensions = parseDimensions(dimensionsBox.getValue());
+		draft.serverBrandContains = serverBrandFilterBox.getValue().trim();
+		if (!draft.hasAnyRtpTarget()) {
+			draft.rtpOverworld = true;
+		}
 		ConfigManager.get().update(draft);
 		onClose();
-	}
-
-	private List<String> parseDimensions(String raw) {
-		List<String> dimensions = new ArrayList<>();
-		for (String part : raw.split(",")) {
-			String trimmed = part.trim().toLowerCase();
-			if (!trimmed.isBlank()) {
-				dimensions.add(trimmed);
-			}
-		}
-		if (dimensions.isEmpty()) {
-			dimensions.add("overworld");
-		}
-		return dimensions;
 	}
 
 	@Override

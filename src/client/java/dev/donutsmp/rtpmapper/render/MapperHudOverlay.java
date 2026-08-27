@@ -57,9 +57,11 @@ public final class MapperHudOverlay {
 		textY += 12;
 
 		SampleStore store = SampleStore.get();
-		graphics.text(minecraft.font,
-				"Samples: " + store.getSessionSamples().size() + " / " + store.getAllSamples().size(),
-				textX, textY, 0xFFB0BEC5, false);
+		var displaySamples = store.getDisplaySamples(config.showLifetimeSamples);
+		String sampleLabel = config.showLifetimeSamples
+				? "Samples: " + displaySamples.size() + " (lifetime)"
+				: "Samples: " + displaySamples.size() + " (session)";
+		graphics.text(minecraft.font, sampleLabel, textX, textY, 0xFFB0BEC5, false);
 		textY += 10;
 
 		var player = minecraft.player;
@@ -68,11 +70,11 @@ public final class MapperHudOverlay {
 		), textX, textY, 0xFFB0BEC5, false);
 		textY += 10;
 
-		if (store.getSessionSamples().isEmpty()) {
+		if (displaySamples.isEmpty()) {
 			graphics.text(minecraft.font, "Last RTP: —", textX, textY, 0xFFB0BEC5, false);
 		} else {
 			graphics.text(minecraft.font, String.format(Locale.ROOT,
-					"Last RTP: %.0f / %.0f [%s]", engine.getLastRtpX(), engine.getLastRtpZ(), engine.getCurrentDimension()
+					"Last RTP: %.0f / %.0f [%s]", engine.getLastRtpX(), engine.getLastRtpZ(), engine.getCurrentTargetName()
 			), textX, textY, 0xFFB0BEC5, false);
 		}
 		textY += 10;
@@ -100,7 +102,7 @@ public final class MapperHudOverlay {
 		if (config.hudShowMiniMap) {
 			int mapX = x + 8;
 			int mapY = y + panelHeight - 88;
-			MINI_MAP.render(graphics, mapX, mapY, 204, 80, store.getSessionSamples());
+			MINI_MAP.render(graphics, mapX, mapY, 204, 80, displaySamples);
 		}
 	}
 
