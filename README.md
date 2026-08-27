@@ -96,14 +96,17 @@ This crash is **not from RTP Mapper**. It comes from **Sodium 0.9.1** hitting an
 **Fix (do all of these while mapping):**
 
 1. **Upgrade Sodium** to `0.9.2-alpha.4+` for MC 26.1.2 — that release specifically fixes mesh time buffer resizing ([Sodium #3809](https://github.com/CaffeineMC/sodium/issues/3809)).
-2. **Disable these before pressing K** (your crash had them all on):
+2. **Disable Iris OR keep Sodium on 0.9.1** — Iris 1.11.x is built for Sodium **0.9.1**. Sodium 0.9.2-alpha.4 refactors `RenderRegionManager` and Iris crashes on join with:
+   ```
+   MixinRenderRegionManager … iris$forceClear … failed injection check
+   ```
+   Since your shaders are already off (`enableShaders=false` in `iris.properties`), the easiest fix is to **remove Iris** while using Sodium 0.9.2. Alternatively, stay on Sodium 0.9.1 + disable ESP mods (see below).
+3. **Disable these before pressing K** (your crash had them all on):
    - Glazed: Covered Hole, Hole/Tunnel/Stair ESP, Rotated Deepslate ESP, Spawner Notifier
    - Meteor: ESP, Storage ESP, Break Indicators
    - Better Meteor: Donut Chunk Base Finder
-3. **Lower render distance** to 6–8 (you had 3025 chunks loaded).
-4. **Use 1080p** while mapping if you're on 4K — your crash reports show `3840x2160`.
-
-If you still crash after upgrading Sodium, temporarily remove **Iris** and **Continuity** and test again.
+4. **Lower render distance** to 6–8 (you had 3025 chunks loaded).
+5. **Use 1080p** while mapping if you're on 4K — your crash reports show `3840x2160`.
 
 ## Disclaimer
 
