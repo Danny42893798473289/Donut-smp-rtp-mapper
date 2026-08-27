@@ -64,6 +64,25 @@ public final class SampleStore {
 		sessionSamples.clear();
 	}
 
+	public void clearAllAndDeleteFiles() throws IOException {
+		clearAll();
+		Path configDir = ConfigManager.get().getConfigDir();
+		Files.deleteIfExists(getSamplesCsvPath());
+		Files.deleteIfExists(configDir.resolve("samples.txt"));
+		Path sessionsDir = configDir.resolve("sessions");
+		if (Files.isDirectory(sessionsDir)) {
+			try (var entries = Files.list(sessionsDir)) {
+				for (Path entry : entries.toList()) {
+					Files.deleteIfExists(entry);
+				}
+			}
+		}
+	}
+
+	public long countInvalidSamples() {
+		return allSamples.stream().filter(RtpSample::looksOutsideDonutRtpZone).count();
+	}
+
 	public void loadExisting() {
 		Path csvPath = getSamplesCsvPath();
 		if (!Files.exists(csvPath)) {

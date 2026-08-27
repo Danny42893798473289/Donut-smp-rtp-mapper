@@ -6,7 +6,7 @@ Client-side Fabric mod for **Minecraft 26.1.2** that automates DonutSMP random t
 
 - **Automated RTP loop** — sends `/rtp <dimension>` on a configurable cooldown
 - **Settings-driven targets** — only dimensions you enable in Settings are used; the mod randomly picks among those each cycle (e.g. only Overworld enabled → always `/rtp overworld`)
-- **Map region tracking** — each sample records its quadrant + distance ring (e.g. `NW 75k-100k`) based on DonutSMP's RTP coordinate range (often 30k–150k+ from spawn)
+- **Map region tracking** — each sample records its quadrant + distance ring (e.g. `NE 5k-10k`) based on DonutSMP's RTP range (~5k–10k from world center)
 - **Live HUD overlay** — in-game status panel without opening a GUI
 - **Full mapper screen** — scatter map with 5k ring guides, stats, export, and settings
 - **Auto-save** — writes to `.minecraft/config/donut-smp-rtp-mapper/`
@@ -93,7 +93,7 @@ Three common causes:
 - Real RTP: `x`/`z` mix positive and negative, `distance_from_origin` usually under **15k**, `teleport_delta` (v1.0.8+) often **10k+**
 - Bad data: all `x` and `z` negative, distance **50k+**, `teleport_delta` under **2k**
 
-Clear old data (Clear Data in mapper), fix Iris/Sodium/ESP crashes, then collect fresh samples.
+Clear old data: open mapper (M) and click **Clear Data twice** (deletes `samples.csv` and all lifetime samples). Fix Iris/Sodium/ESP crashes, then collect fresh samples from spawn.
 
 ### Sodium crash: "Overflowed the mesh time buffer"
 

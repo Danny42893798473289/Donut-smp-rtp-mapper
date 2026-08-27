@@ -101,7 +101,7 @@ public final class ConfigManager {
 			}
 
 			// v1.0.6 raised the default from 50 — old configs kept the false-positive-prone value.
-			if (root.has("teleportConfirmBlocks") && root.get("teleportConfirmBlocks").getAsInt() == 50) {
+			if (root.has("teleportConfirmBlocks") && root.get("teleportConfirmBlocks").getAsInt() < 500) {
 				loaded.teleportConfirmBlocks = 500;
 			}
 

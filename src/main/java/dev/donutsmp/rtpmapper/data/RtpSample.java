@@ -68,4 +68,9 @@ public record RtpSample(
 	public boolean looksOutsideDonutRtpZone() {
 		return distanceFromOrigin() > MapRegion.DONUT_TYPICAL_RTP_MAX_DISTANCE;
 	}
+
+	/** DonutSMP overworld RTP lands within ~15k of world center (0, 0). */
+	public boolean looksLikeValidDonutRtpLanding() {
+		return !looksOutsideDonutRtpZone();
+	}
 }

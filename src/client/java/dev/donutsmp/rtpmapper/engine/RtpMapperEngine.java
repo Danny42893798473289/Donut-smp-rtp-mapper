@@ -210,6 +210,15 @@ public final class RtpMapperEngine {
 				teleportDelta
 		);
 
+		if (!sample.looksLikeValidDonutRtpLanding()) {
+			handleFailure(String.format(Locale.ROOT,
+					"Rejected sample outside RTP zone (dist %.0f, moved %.0f) — use /rtp from spawn to verify",
+					sample.distanceFromOrigin(),
+					teleportDelta
+			));
+			return;
+		}
+
 		lastRtpX = sample.x();
 		lastRtpZ = sample.z();
 		sampleStore.addSample(sample);

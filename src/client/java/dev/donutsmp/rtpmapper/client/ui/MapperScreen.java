@@ -20,6 +20,7 @@ import java.util.Map;
 public final class MapperScreen extends Screen {
 	private final MapRenderer mapRenderer = new MapRenderer();
 	private boolean showLifetimeSamples;
+	private boolean clearConfirmPending;
 	private String footerMessage = "Ready";
 
 	public MapperScreen() {
@@ -111,9 +112,12 @@ public final class MapperScreen extends Screen {
 		int line = y;
 		graphics.text(font, "MAPPER STATUS", x, line, 0xFF90CAF9, false);
 		line += 14;
-		graphics.text(font,
-				"Samples: " + store.getSessionSamples().size() + " session / " + store.getAllSamples().size() + " total",
-				x, line, 0xFFB0BEC5, false);
+		long invalidSamples = store.countInvalidSamples();
+		String sampleLine = "Samples: " + store.getSessionSamples().size() + " session / " + store.getAllSamples().size() + " total";
+		if (invalidSamples > 0) {
+			sampleLine += " (" + invalidSamples + " invalid)";
+		}
+		graphics.text(font, sampleLine, x, line, invalidSamples > 0 ? 0xFFFFB74D : 0xFFB0BEC5, false);
 		line += 12;
 
 		if (minecraft.player != null) {
@@ -211,8 +215,22 @@ public final class MapperScreen extends Screen {
 	}
 
 	private void clearData() {
-		SampleStore.get().clearSession();
-		footerMessage = "Session samples cleared";
+		if (!clearConfirmPending) {
+			clearConfirmPending = true;
+			long invalid = SampleStore.get().countInvalidSamples();
+			footerMessage = invalid > 0
+					? "Click Clear Data again to delete ALL " + SampleStore.get().getAllSamples().size() + " samples + CSV"
+					: "Click Clear Data again to delete ALL samples + CSV";
+			return;
+		}
+
+		clearConfirmPending = false;
+		try {
+			SampleStore.get().clearAllAndDeleteFiles();
+			footerMessage = "All samples cleared (samples.csv deleted)";
+		} catch (Exception exception) {
+			footerMessage = "Clear failed: " + exception.getMessage();
+		}
 	}
 
 	private void exportCsv() {
