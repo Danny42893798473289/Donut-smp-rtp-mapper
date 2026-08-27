@@ -7,6 +7,9 @@ import java.util.Locale;
  * DonutSMP overworld RTP commonly lands tens of thousands of blocks from spawn, so rings extend past 30k.
  */
 public final class MapRegion {
+	/** DonutSMP RTP is configured around spawn — wiki/plugin defaults are ~5k–10k from 0,0. */
+	public static final int DONUT_TYPICAL_RTP_MAX_DISTANCE = 15_000;
+
 	public static final int[] RING_BOUNDS = {
 			5_000, 10_000, 15_000, 20_000, 25_000, 30_000,
 			40_000, 50_000, 60_000, 75_000, 100_000, 125_000, 150_000

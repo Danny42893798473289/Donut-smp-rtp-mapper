@@ -14,9 +14,10 @@ public record RtpSample(
 		double y,
 		double z,
 		String dimension,
-		String mapRegion
+		String mapRegion,
+		double teleportDelta
 ) {
-	public static RtpSample create(String sessionId, double x, double y, double z, String dimension) {
+	public static RtpSample create(String sessionId, double x, double y, double z, String dimension, double teleportDelta) {
 		return new RtpSample(
 				UUID.randomUUID().toString(),
 				sessionId,
@@ -25,7 +26,8 @@ public record RtpSample(
 				y,
 				z,
 				dimension,
-				MapRegion.regionLabel(x, z)
+				MapRegion.regionLabel(x, z),
+				teleportDelta
 		);
 	}
 
@@ -35,7 +37,7 @@ public record RtpSample(
 
 	public String toCsvRow() {
 		return String.format(Locale.ROOT,
-				"%s,%s,%.3f,%.3f,%.3f,%s,%s,%.3f",
+				"%s,%s,%.3f,%.3f,%.3f,%s,%s,%.3f,%.3f",
 				timestamp.toString(),
 				sessionId,
 				x,
@@ -43,13 +45,14 @@ public record RtpSample(
 				z,
 				dimension,
 				mapRegion,
-				distanceFromOrigin()
+				distanceFromOrigin(),
+				teleportDelta
 		);
 	}
 
 	public String toTextLine() {
 		return String.format(Locale.ROOT,
-				"[%s] session=%s dim=%s region=%s x=%.1f y=%.1f z=%.1f dist=%.1f",
+				"[%s] session=%s dim=%s region=%s x=%.1f y=%.1f z=%.1f dist=%.1f delta=%.1f",
 				timestamp,
 				sessionId,
 				dimension,
@@ -57,7 +60,12 @@ public record RtpSample(
 				x,
 				y,
 				z,
-				distanceFromOrigin()
+				distanceFromOrigin(),
+				teleportDelta
 		);
+	}
+
+	public boolean looksOutsideDonutRtpZone() {
+		return distanceFromOrigin() > MapRegion.DONUT_TYPICAL_RTP_MAX_DISTANCE;
 	}
 }

@@ -56,4 +56,26 @@ public final class RegionStats {
 		}
 		return String.format(Locale.ROOT, "%.0f", distance);
 	}
+
+	public static String diagnoseSamples(List<RtpSample> samples) {
+		if (samples.isEmpty()) {
+			return "";
+		}
+
+		long outsideRtpZone = samples.stream().filter(RtpSample::looksOutsideDonutRtpZone).count();
+		Map<String, Long> quadrants = countByQuadrant(samples);
+		long distinctQuadrants = quadrants.size();
+		double avgDelta = samples.stream().mapToDouble(RtpSample::teleportDelta).average().orElse(0);
+
+		if (outsideRtpZone == samples.size() && distinctQuadrants <= 1) {
+			return "All samples outside Donut RTP zone (~15k) in one quadrant — likely not real RTP landings";
+		}
+		if (outsideRtpZone > samples.size() / 2) {
+			return outsideRtpZone + "/" + samples.size() + " samples outside Donut RTP zone (~15k from spawn)";
+		}
+		if (avgDelta > 0 && avgDelta < 2_000 && outsideRtpZone > 0) {
+			return "Low avg move (" + formatDistance(avgDelta) + ") — check teleport confirm setting";
+		}
+		return "";
+	}
 }

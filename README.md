@@ -81,13 +81,19 @@ CSV columns: `timestamp, session_id, x, y, z, dimension, map_region, distance_fr
 
 ### Why does every sample say "NW 30k+"?
 
-Two common causes:
+Three common causes:
 
-1. **Old ring labels** — before v1.0.6, anything past 30k blocks from spawn was lumped into a single `30k+` bucket. DonutSMP overworld RTP often lands around **50k–100k+** blocks out, so almost every landing looked identical. v1.0.6 adds finer rings up to `150k+`. Re-open the mapper to reload `samples.csv` with updated labels.
+1. **Old ring labels** — before v1.0.6, anything past 30k blocks from spawn was lumped into a single `30k+` bucket. Re-open the mapper to reload `samples.csv` with updated labels.
 
-2. **False samples from movement** — if you moved 50+ blocks while the mod was "Confirming teleport" (before v1.0.6), it could save your **current** position instead of the RTP landing. v1.0.6 freezes movement during confirm and raises the default threshold to **500 blocks** (Settings → Teleport confirm blocks). Stay still through the full warmup + confirm phase.
+2. **False samples from movement** — v1.0.6+ freezes movement during confirm and uses a **500 block** threshold. Old samples may have recorded your **current** NW position instead of the RTP landing.
 
-The mod only sends `/rtp overworld` — **DonutSMP picks the coordinates**. Check the Statistics panel for quadrant counts (`NE`, `NW`, etc.) and X/Z ranges to see whether you truly have an NW bias or just coarse labels / bad samples.
+3. **You're outside the real RTP zone** — DonutSMP RTP lands within roughly **5k–10k of spawn (0,0)** in all four quadrants ([wiki](https://donutsmp.wiki/rtp)). Your crash logs show you playing at **(-52k, -110k)** — that's ~130k out in NW, far beyond RTP range. If every sample has negative X and negative Z at 50k+, those are almost certainly **not** server RTP landings; you're logging where you already are in the wilderness.
+
+**How to verify:** open `.minecraft/config/donut-smp-rtp-mapper/samples.csv` and check:
+- Real RTP: `x`/`z` mix positive and negative, `distance_from_origin` usually under **15k**, `teleport_delta` (v1.0.8+) often **10k+**
+- Bad data: all `x` and `z` negative, distance **50k+**, `teleport_delta` under **2k**
+
+Clear old data (Clear Data in mapper), fix Iris/Sodium/ESP crashes, then collect fresh samples.
 
 ### Sodium crash: "Overflowed the mesh time buffer"
 

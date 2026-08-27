@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class SampleStore {
-	private static final String CSV_HEADER = "timestamp,session_id,x,y,z,dimension,map_region,distance_from_origin";
+	private static final String CSV_HEADER = "timestamp,session_id,x,y,z,dimension,map_region,distance_from_origin,teleport_delta";
 	private static final SampleStore INSTANCE = new SampleStore();
 
 	private final List<RtpSample> allSamples = new ArrayList<>();
@@ -91,6 +91,7 @@ public final class SampleStore {
 		try {
 			double x = Double.parseDouble(parts[2]);
 			double z = Double.parseDouble(parts[4]);
+			double teleportDelta = parts.length >= 9 ? Double.parseDouble(parts[8]) : 0.0;
 			return new RtpSample(
 					"loaded-" + parts[1],
 					parts[1],
@@ -99,7 +100,8 @@ public final class SampleStore {
 					Double.parseDouble(parts[3]),
 					z,
 					parts[5],
-					MapRegion.regionLabel(x, z)
+					MapRegion.regionLabel(x, z),
+					teleportDelta
 			);
 		} catch (RuntimeException exception) {
 			return null;

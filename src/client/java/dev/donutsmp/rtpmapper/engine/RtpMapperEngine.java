@@ -198,12 +198,16 @@ public final class RtpMapperEngine {
 	}
 
 	private void tickRecordingSample(LocalPlayer player) {
+		double teleportDelta = Math.sqrt(
+				Math.pow(player.getX() - preRtpX, 2) + Math.pow(player.getZ() - preRtpZ, 2)
+		);
 		RtpSample sample = RtpSample.create(
 				sampleStore.getCurrentSessionId(),
 				player.getX(),
 				player.getY(),
 				player.getZ(),
-				currentDimension
+				currentDimension,
+				teleportDelta
 		);
 
 		lastRtpX = sample.x();
@@ -221,7 +225,8 @@ public final class RtpMapperEngine {
 		sampleListener.accept(sample);
 		showToast("Sample #" + sampleStore.getSessionSamples().size() + " saved ["
 				+ currentTargetName + " / " + MapRegion.regionLabel(sample.x(), sample.z())
-				+ " dist " + RegionStats.formatDistance(sample.distanceFromOrigin()) + "]");
+				+ " dist " + RegionStats.formatDistance(sample.distanceFromOrigin())
+				+ " moved " + RegionStats.formatDistance(teleportDelta) + "]");
 
 		startCooldown();
 		transition(RtpMapperState.WAITING_COOLDOWN);

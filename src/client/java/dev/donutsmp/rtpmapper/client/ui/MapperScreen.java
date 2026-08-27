@@ -183,6 +183,24 @@ public final class MapperScreen extends Screen {
 		if (!samples.isEmpty()) {
 			RtpSample latest = samples.getLast();
 			graphics.text(font, "Latest region: " + latest.mapRegion(), x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
+
+		double avgDelta = samples.stream().mapToDouble(RtpSample::teleportDelta).filter(delta -> delta > 0).average().orElse(0);
+		if (avgDelta > 0) {
+			graphics.text(font, String.format(Locale.ROOT, "Avg RTP move: %.0f blocks", avgDelta), x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
+
+		long outsideZone = samples.stream().filter(RtpSample::looksOutsideDonutRtpZone).count();
+		if (outsideZone > 0) {
+			graphics.text(font, "Outside ~15k RTP zone: " + outsideZone + "/" + samples.size(), x, y, 0xFFFFB74D, false);
+			y += 10;
+		}
+
+		String diagnosis = RegionStats.diagnoseSamples(samples);
+		if (!diagnosis.isEmpty()) {
+			graphics.text(font, diagnosis, x, y, 0xFFFF8A65, false);
 		}
 	}
 
