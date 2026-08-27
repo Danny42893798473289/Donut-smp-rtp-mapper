@@ -51,6 +51,10 @@ public final class SampleStore {
 		return Collections.unmodifiableList(sessionSamples);
 	}
 
+	public List<RtpSample> getDisplaySamples(boolean lifetime) {
+		return lifetime ? getAllSamples() : getSessionSamples();
+	}
+
 	public void clearSession() {
 		sessionSamples.clear();
 	}

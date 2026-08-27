@@ -95,6 +95,10 @@ public final class ConfigManager {
 				loaded.serverBrandContains = "donut";
 			}
 
+			if (!root.has("showLifetimeSamples")) {
+				loaded.showLifetimeSamples = true;
+			}
+
 			if (!loaded.hasAnyRtpTarget()) {
 				loaded.rtpOverworld = true;
 			}

@@ -22,6 +22,8 @@ public final class MapperConfig {
 	public boolean hudEnabled = true;
 	public String hudCorner = "top_left";
 	public boolean hudShowMiniMap = true;
+	/** When true, map/HUD show all saved samples; when false, current session only. */
+	public boolean showLifetimeSamples = true;
 
 	public MapperConfig copy() {
 		MapperConfig copy = new MapperConfig();
@@ -39,6 +41,7 @@ public final class MapperConfig {
 		copy.hudEnabled = hudEnabled;
 		copy.hudCorner = hudCorner;
 		copy.hudShowMiniMap = hudShowMiniMap;
+		copy.showLifetimeSamples = showLifetimeSamples;
 		return copy;
 	}
 

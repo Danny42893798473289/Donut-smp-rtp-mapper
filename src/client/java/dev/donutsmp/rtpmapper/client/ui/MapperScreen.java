@@ -17,11 +17,12 @@ import java.util.Locale;
 
 public final class MapperScreen extends Screen {
 	private final MapRenderer mapRenderer = new MapRenderer();
-	private boolean showSessionOnly = true;
+	private boolean showLifetimeSamples;
 	private String footerMessage = "Ready";
 
 	public MapperScreen() {
 		super(Component.literal("DonutSMP RTP Mapper"));
+		this.showLifetimeSamples = ConfigManager.get().getConfig().showLifetimeSamples;
 	}
 
 	@Override
@@ -52,13 +53,16 @@ public final class MapperScreen extends Screen {
 		x += buttonWidth + gap;
 
 		addRenderableWidget(Button.builder(
-				Component.literal(showSessionOnly ? "View: Session" : "View: All"),
+				Component.literal(showLifetimeSamples ? "View: Lifetime" : "View: Session"),
 				button -> {
-					showSessionOnly = !showSessionOnly;
+					showLifetimeSamples = !showLifetimeSamples;
+					var config = ConfigManager.get().getConfig();
+					config.showLifetimeSamples = showLifetimeSamples;
+					ConfigManager.get().update(config);
 					clearWidgets();
 					init();
 				}
-		).bounds(width - 110, top, 102, 20).build());
+		).bounds(width - 118, top, 110, 20).build());
 	}
 
 	@Override
@@ -85,10 +89,10 @@ public final class MapperScreen extends Screen {
 		graphics.fill(8, topBarHeight + 8, panelWidth + 8, height - bottomBarHeight - 8, 0xCC101828);
 		renderStatusPanel(graphics, engine, store, minecraft, 16, topBarHeight + 16);
 
-		List<RtpSample> samples = showSessionOnly ? store.getSessionSamples() : store.getAllSamples();
-		String title = showSessionOnly
-				? "Random Teleports on DonutSMP — Session (" + samples.size() + ")"
-				: "Random Teleports on DonutSMP — All (" + samples.size() + ")";
+		List<RtpSample> samples = store.getDisplaySamples(showLifetimeSamples);
+		String title = showLifetimeSamples
+				? "Random Teleports on DonutSMP — Lifetime (" + samples.size() + ")"
+				: "Random Teleports on DonutSMP — Session (" + samples.size() + ")";
 		graphics.text(font, title, mapX, mapY - 12, 0xFFCFD8DC, false);
 		mapRenderer.render(graphics, mapX, mapY, mapWidth, mapHeight, samples);
 
@@ -183,9 +187,9 @@ public final class MapperScreen extends Screen {
 	private void exportCsv() {
 		try {
 			SampleStore store = SampleStore.get();
-			List<RtpSample> samples = showSessionOnly ? store.getSessionSamples() : store.getAllSamples();
+			List<RtpSample> samples = showLifetimeSamples ? store.getAllSamples() : store.getSessionSamples();
 			Path target = ConfigManager.get().getConfigDir().resolve(
-					showSessionOnly ? "export-session.csv" : "export-all.csv"
+					showLifetimeSamples ? "export-all.csv" : "export-session.csv"
 			);
 			store.exportViewCsv(samples, target);
 			footerMessage = "Exported CSV to " + target.getFileName();

@@ -77,6 +77,10 @@ public final class SettingsScreen extends Screen {
 				.create(x, y, fieldWidth, 20, Component.literal("HUD mini-map"), (button, value) -> draft.hudShowMiniMap = value));
 		y += 24;
 
+		addRenderableWidget(CycleButton.onOffBuilder(draft.showLifetimeSamples)
+				.create(x, y, fieldWidth, 20, Component.literal("Lifetime samples (map + HUD)"), (button, value) -> draft.showLifetimeSamples = value));
+		y += 24;
+
 		addRenderableWidget(CycleButton.builder(HudCorner::label, HudCorner.TOP_LEFT)
 				.withValues(HudCorner.values())
 				.create(x, y, fieldWidth, 20, Component.literal("HUD corner"), (button, value) -> draft.hudCorner = value.id));
