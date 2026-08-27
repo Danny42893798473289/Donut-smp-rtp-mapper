@@ -78,7 +78,7 @@ public final class RtpMapperEngine {
 		cooldownEndsAt = Instant.now();
 		stateStartedAt = Instant.now();
 		statusMessage = "Starting mapping session";
-		showToast("Mapping started");
+		showToast("Mapping started — disable Glazed Covered Hole + Meteor ESP to avoid Sodium crashes");
 	}
 
 	public void stop() {

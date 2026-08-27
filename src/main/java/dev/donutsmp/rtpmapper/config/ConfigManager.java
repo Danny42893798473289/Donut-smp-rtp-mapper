@@ -100,6 +100,11 @@ public final class ConfigManager {
 				loaded.showLifetimeSamples = true;
 			}
 
+			// v1.0.6 raised the default from 50 — old configs kept the false-positive-prone value.
+			if (root.has("teleportConfirmBlocks") && root.get("teleportConfirmBlocks").getAsInt() == 50) {
+				loaded.teleportConfirmBlocks = 500;
+			}
+
 			if (!loaded.hasAnyRtpTarget()) {
 				loaded.rtpOverworld = true;
 			}

@@ -91,12 +91,19 @@ The mod only sends `/rtp overworld` — **DonutSMP picks the coordinates**. Chec
 
 ### Sodium crash: "Overflowed the mesh time buffer"
 
-This crash comes from **Sodium + heavy ESP mods** (Meteor/Glazed Covered Hole, Storage ESP, etc.), not from RTP Mapper. While mapping:
+This crash is **not from RTP Mapper**. It comes from **Sodium 0.9.1** hitting an internal mesh buffer limit while heavy render mods rebuild chunks. Your logs show it crashing while **Glazed Covered Hole** is scanning (`Covered Hole found at -72360…`).
 
-- Disable Glazed hole/spawner ESP and Meteor storage ESP / break indicators
-- Lower render distance (8 or less)
-- Avoid freecam while mapping
-- Consider turning off Iris shader pipeline features if crashes persist at 4K
+**Fix (do all of these while mapping):**
+
+1. **Upgrade Sodium** to `0.9.2-alpha.4+` for MC 26.1.2 — that release specifically fixes mesh time buffer resizing ([Sodium #3809](https://github.com/CaffeineMC/sodium/issues/3809)).
+2. **Disable these before pressing K** (your crash had them all on):
+   - Glazed: Covered Hole, Hole/Tunnel/Stair ESP, Rotated Deepslate ESP, Spawner Notifier
+   - Meteor: ESP, Storage ESP, Break Indicators
+   - Better Meteor: Donut Chunk Base Finder
+3. **Lower render distance** to 6–8 (you had 3025 chunks loaded).
+4. **Use 1080p** while mapping if you're on 4K — your crash reports show `3840x2160`.
+
+If you still crash after upgrading Sodium, temporarily remove **Iris** and **Continuity** and test again.
 
 ## Disclaimer
 
