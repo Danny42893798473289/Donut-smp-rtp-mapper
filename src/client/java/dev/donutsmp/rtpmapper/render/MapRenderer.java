@@ -6,7 +6,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import java.util.List;
 
 public final class MapRenderer {
-	public static final int[] RING_DISTANCES = {5_000, 10_000, 15_000, 20_000, 25_000, 30_000};
+	public static final int[] RING_DISTANCES = {
+			5_000, 10_000, 15_000, 20_000, 25_000, 30_000, 50_000, 75_000, 100_000, 150_000
+	};
 
 	private double panX = 0.0;
 	private double panZ = 0.0;
@@ -26,7 +28,7 @@ public final class MapRenderer {
 
 		graphics.fill(x, y, x + width, y + height, background);
 
-		double maxDistance = 30_000.0;
+		double maxDistance = 50_000.0;
 		for (RtpSample sample : samples) {
 			maxDistance = Math.max(maxDistance, Math.max(Math.abs(sample.x()), Math.abs(sample.z())));
 		}

@@ -12,7 +12,7 @@ public final class MapperConfig {
 	/** When multiple targets are enabled, avoid picking the same target twice in a row. */
 	public boolean avoidRepeatTarget = true;
 
-	public int teleportConfirmBlocks = 50;
+	public int teleportConfirmBlocks = 500;
 	public int teleportConfirmTimeoutSeconds = 30;
 	/** Direct connection filter (e.g. donutsmp.net). Ignored when blank. */
 	public String serverAddressContains = "donutsmp";

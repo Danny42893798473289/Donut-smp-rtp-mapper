@@ -14,6 +14,7 @@ public final class SettingsScreen extends Screen {
 	private MapperConfig draft;
 	private EditBox cooldownBox;
 	private EditBox warmupBox;
+	private EditBox teleportConfirmBox;
 	private EditBox serverFilterBox;
 	private EditBox serverBrandFilterBox;
 
@@ -38,6 +39,11 @@ public final class SettingsScreen extends Screen {
 		warmupBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Warmup seconds"));
 		warmupBox.setValue(String.valueOf(draft.warmupSeconds));
 		addRenderableWidget(warmupBox);
+		y += 28;
+
+		teleportConfirmBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Teleport confirm blocks"));
+		teleportConfirmBox.setValue(String.valueOf(draft.teleportConfirmBlocks));
+		addRenderableWidget(teleportConfirmBox);
 		y += 28;
 
 		serverFilterBox = new EditBox(font, x, y, fieldWidth, fieldHeight, Component.literal("Server address contains"));
@@ -99,8 +105,9 @@ public final class SettingsScreen extends Screen {
 		graphics.centeredText(font, title.getString(), width / 2, 16, 0xFFFFFF);
 		graphics.text(font, "Cooldown (seconds)", width / 2 - 150, 24, 0xFFB0BEC5, false);
 		graphics.text(font, "Warmup (seconds)", width / 2 - 150, 52, 0xFFB0BEC5, false);
-		graphics.text(font, "Server address filter", width / 2 - 150, 80, 0xFFB0BEC5, false);
-		graphics.text(font, "Server brand filter (proxy-safe)", width / 2 - 150, 108, 0xFFB0BEC5, false);
+		graphics.text(font, "Teleport confirm (blocks)", width / 2 - 150, 80, 0xFFB0BEC5, false);
+		graphics.text(font, "Server address filter", width / 2 - 150, 108, 0xFFB0BEC5, false);
+		graphics.text(font, "Server brand filter (proxy-safe)", width / 2 - 150, 136, 0xFFB0BEC5, false);
 		graphics.text(font, "RTP targets (random among enabled)", width / 2 - 150, graphicsLabelY, 0xFF90CAF9, false);
 		graphics.text(font, "DonutSMP: /rtp overworld | nether | end", width / 2 - 150, graphicsLabelY + 10, 0xFF78909C, false);
 		super.extractRenderState(graphics, mouseX, mouseY, partialTick);
@@ -110,6 +117,7 @@ public final class SettingsScreen extends Screen {
 		try {
 			draft.cooldownSeconds = Math.max(1, Integer.parseInt(cooldownBox.getValue().trim()));
 			draft.warmupSeconds = Math.max(1, Integer.parseInt(warmupBox.getValue().trim()));
+			draft.teleportConfirmBlocks = Math.max(50, Integer.parseInt(teleportConfirmBox.getValue().trim()));
 		} catch (NumberFormatException exception) {
 			return;
 		}

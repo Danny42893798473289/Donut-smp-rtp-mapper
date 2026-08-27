@@ -3,6 +3,7 @@ package dev.donutsmp.rtpmapper.client.ui;
 import dev.donutsmp.rtpmapper.config.ConfigManager;
 import dev.donutsmp.rtpmapper.data.RtpSample;
 import dev.donutsmp.rtpmapper.data.SampleStore;
+import dev.donutsmp.rtpmapper.engine.RegionStats;
 import dev.donutsmp.rtpmapper.engine.RtpMapperEngine;
 import dev.donutsmp.rtpmapper.render.MapRenderer;
 import net.minecraft.client.Minecraft;
@@ -14,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public final class MapperScreen extends Screen {
 	private final MapRenderer mapRenderer = new MapRenderer();
@@ -159,6 +161,17 @@ public final class MapperScreen extends Screen {
 		y += 10;
 		graphics.text(font, String.format(Locale.ROOT, "Avg distance: %.0f", avgDistance), x, y, 0xFFB0BEC5, false);
 		y += 10;
+
+		String quadrants = RegionStats.formatQuadrantBreakdown(samples);
+		if (!quadrants.isEmpty()) {
+			graphics.text(font, "Quadrants: " + quadrants, x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
+
+		for (Map.Entry<String, Long> entry : RegionStats.topRegions(samples, 3)) {
+			graphics.text(font, String.format(Locale.ROOT, "%s: %d", entry.getKey(), entry.getValue()), x, y, 0xFFB0BEC5, false);
+			y += 10;
+		}
 
 		long within5k = samples.stream().filter(sample -> sample.distanceFromOrigin() <= 5_000).count();
 		long within10k = samples.stream().filter(sample -> sample.distanceFromOrigin() <= 10_000).count();

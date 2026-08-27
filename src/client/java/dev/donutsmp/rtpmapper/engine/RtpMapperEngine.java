@@ -175,6 +175,8 @@ public final class RtpMapperEngine {
 	}
 
 	private void tickConfirmingTeleport(LocalPlayer player) {
+		player.input.keyPresses = Input.EMPTY;
+
 		MapperConfig config = ConfigManager.get().getConfig();
 		double dx = player.getX() - preRtpX;
 		double dz = player.getZ() - preRtpZ;
@@ -218,7 +220,8 @@ public final class RtpMapperEngine {
 
 		sampleListener.accept(sample);
 		showToast("Sample #" + sampleStore.getSessionSamples().size() + " saved ["
-				+ currentTargetName + " / " + MapRegion.regionLabel(sample.x(), sample.z()) + "]");
+				+ currentTargetName + " / " + MapRegion.regionLabel(sample.x(), sample.z())
+				+ " dist " + RegionStats.formatDistance(sample.distanceFromOrigin()) + "]");
 
 		startCooldown();
 		transition(RtpMapperState.WAITING_COOLDOWN);

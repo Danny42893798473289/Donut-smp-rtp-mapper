@@ -89,16 +89,17 @@ public final class SampleStore {
 		}
 
 		try {
-			boolean hasRegion = parts.length >= 8;
+			double x = Double.parseDouble(parts[2]);
+			double z = Double.parseDouble(parts[4]);
 			return new RtpSample(
 					"loaded-" + parts[1],
 					parts[1],
 					java.time.Instant.parse(parts[0]),
-					Double.parseDouble(parts[2]),
+					x,
 					Double.parseDouble(parts[3]),
-					Double.parseDouble(parts[4]),
+					z,
 					parts[5],
-					hasRegion ? parts[6] : MapRegion.regionLabel(Double.parseDouble(parts[2]), Double.parseDouble(parts[4]))
+					MapRegion.regionLabel(x, z)
 			);
 		} catch (RuntimeException exception) {
 			return null;
