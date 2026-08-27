@@ -63,8 +63,6 @@ public final class MapperScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-		extractBackground(graphics, mouseX, mouseY, partialTick);
-
 		RtpMapperEngine engine = RtpMapperEngine.get();
 		SampleStore store = SampleStore.get();
 		Minecraft minecraft = Minecraft.getInstance();

@@ -86,7 +86,6 @@ public final class SettingsScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-		extractBackground(graphics, mouseX, mouseY, partialTick);
 		graphics.centeredText(font, title.getString(), width / 2, 16, 0xFFFFFF);
 		graphics.text(font, "Cooldown (seconds)", width / 2 - 150, 24, 0xFFB0BEC5, false);
 		graphics.text(font, "Warmup (seconds)", width / 2 - 150, 52, 0xFFB0BEC5, false);
