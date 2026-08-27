@@ -16,8 +16,8 @@ public final class MapperConfig {
 	public int teleportConfirmTimeoutSeconds = 30;
 	/** Direct connection filter (e.g. donutsmp.net). Ignored when blank. */
 	public String serverAddressContains = "donutsmp";
-	/** Server brand filter — works through proxies (e.g. DonutFolia). Ignored when blank. */
-	public String serverBrandContains = "donut";
+	/** Server brand filter — works through proxies (e.g. DonutFolia). Comma-separated. Ignored when blank. */
+	public String serverBrandContains = "donut,donutfolia";
 	public boolean autoSaveAfterSample = true;
 	public boolean hudEnabled = true;
 	public String hudCorner = "top_left";

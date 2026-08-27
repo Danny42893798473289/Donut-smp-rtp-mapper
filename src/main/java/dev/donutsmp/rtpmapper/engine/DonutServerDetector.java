@@ -16,11 +16,24 @@ public final class DonutServerDetector {
 			return false;
 		}
 
-		if (matchesNeedle(serverAddress, config.serverAddressContains)) {
+		if (matchesAnyNeedle(serverAddress, config.serverAddressContains)) {
 			return true;
 		}
 
-		return matchesNeedle(serverBrand, config.serverBrandContains);
+		return matchesAnyNeedle(serverBrand, config.serverBrandContains);
+	}
+
+	private static boolean matchesAnyNeedle(String value, String needles) {
+		if (value == null || needles == null) {
+			return false;
+		}
+
+		for (String needle : needles.split(",")) {
+			if (matchesNeedle(value, needle)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean matchesNeedle(String value, String needle) {

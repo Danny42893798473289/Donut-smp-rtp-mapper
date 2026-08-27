@@ -63,7 +63,10 @@ public final class RtpMapperEngine {
 		}
 
 		if (!isOnDonutSmp()) {
-			showToast("Connect to DonutSMP before starting.");
+			Minecraft minecraft = Minecraft.getInstance();
+			String address = DonutServerProbe.getServerAddress(minecraft);
+			String brand = DonutServerProbe.getServerBrand(minecraft);
+			showToast("Not on DonutSMP (addr=" + describe(address) + ", brand=" + describe(brand) + ")");
 			return;
 		}
 
@@ -400,5 +403,12 @@ public final class RtpMapperEngine {
 	private void showToast(String message) {
 		toastMessage = message;
 		toastExpiresAt = Instant.now().plusSeconds(4);
+	}
+
+	private static String describe(String value) {
+		if (value == null || value.isBlank()) {
+			return "unknown";
+		}
+		return value.length() > 32 ? value.substring(0, 29) + "..." : value;
 	}
 }

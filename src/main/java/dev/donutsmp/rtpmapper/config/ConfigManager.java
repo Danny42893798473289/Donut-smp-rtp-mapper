@@ -91,8 +91,9 @@ public final class ConfigManager {
 				loaded.avoidRepeatTarget = root.get("avoidRepeatDimension").getAsBoolean();
 			}
 
-			if (!root.has("serverBrandContains") || root.get("serverBrandContains").isJsonNull()) {
-				loaded.serverBrandContains = "donut";
+			if (!root.has("serverBrandContains") || root.get("serverBrandContains").isJsonNull()
+					|| root.get("serverBrandContains").getAsString().isBlank()) {
+				loaded.serverBrandContains = "donut,donutfolia";
 			}
 
 			if (!root.has("showLifetimeSamples")) {
@@ -107,7 +108,7 @@ public final class ConfigManager {
 				loaded.rtpOverworld = true;
 			}
 			if (loaded.serverBrandContains == null || loaded.serverBrandContains.isBlank()) {
-				loaded.serverBrandContains = "donut";
+				loaded.serverBrandContains = "donut,donutfolia";
 			}
 		}
 	}
@@ -123,6 +124,9 @@ public final class ConfigManager {
 	public void update(MapperConfig updated) {
 		if (!updated.hasAnyRtpTarget()) {
 			updated.rtpOverworld = true;
+		}
+		if (updated.serverBrandContains == null || updated.serverBrandContains.isBlank()) {
+			updated.serverBrandContains = "donut,donutfolia";
 		}
 		config = updated.copy();
 		save();

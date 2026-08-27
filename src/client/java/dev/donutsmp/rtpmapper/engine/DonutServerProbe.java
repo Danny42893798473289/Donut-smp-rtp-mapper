@@ -16,9 +16,18 @@ public final class DonutServerProbe {
 
 	public static String getServerBrand(Minecraft minecraft) {
 		ClientPacketListener connection = minecraft.getConnection();
+		if (connection == null && minecraft.player != null) {
+			connection = minecraft.player.connection;
+		}
 		if (connection == null) {
 			return null;
 		}
-		return connection.serverBrand();
+
+		String brand = connection.serverBrand();
+		if (brand == null || brand.isBlank()) {
+			return null;
+		}
+
+		return brand.replaceAll("§.", "");
 	}
 }
